@@ -10,7 +10,7 @@ class UserRegistrationView(APIView):
     """
     API endpoint for user registration.
     """
-    permission_classes = []  # Allow any user (authenticated or not) to access this endpoint.
+    permission_classes = []
     serializer_class = UserRegistrationSerializer
 
     def post(self, request, *args, **kwargs):
@@ -35,16 +35,21 @@ class UserLoginView(ObtainAuthToken):
     Returns an auth token.
     """
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data, context={'request': request})
+        serializer = self.serializer_class(
+            data=request.data,
+            context={'request': request}
+        )
         serializer.is_valid(raise_exception=True)
+
         user = serializer.validated_data['user']
-        token, created = Token.objects.get_or_create(user=user)
+        token, _ = Token.objects.get_or_create(user=user)
+
         return Response({
             'token': token.key,
             'user_id': user.pk,
             'email': user.email
         })
 
-# Aliases for clarity
+
 user_register_view = UserRegistrationView.as_view()
 user_login_view = UserLoginView.as_view()
