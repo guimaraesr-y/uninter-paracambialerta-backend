@@ -3,12 +3,17 @@ from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 
+from src.users.auth.custom_auth_token_serializer import CustomAuthTokenSerializer
+
 
 class UserLoginView(ObtainAuthToken):
     """
     API endpoint for user login.
     Returns an auth token.
     """
+
+    serializer_class = CustomAuthTokenSerializer
+
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(
             data=request.data,
