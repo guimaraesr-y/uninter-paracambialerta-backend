@@ -24,15 +24,11 @@ class Report(models.Model):
     description = models.TextField(
         verbose_name=_("Description")
     )
-    latitude = models.DecimalField(
-        max_digits=10,
-        decimal_places=8,
-        verbose_name=_("Latitude")
-    )
-    longitude = models.DecimalField(
-        max_digits=11,
-        decimal_places=8,
-        verbose_name=_("Longitude")
+    location = models.ForeignKey(
+        "location.Location",
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name=_("Location")
     )
     status = models.CharField(
         max_length=20,
