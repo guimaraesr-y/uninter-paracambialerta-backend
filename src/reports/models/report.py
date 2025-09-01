@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
+from src.reports.models.votes import Downvote, Upvote
 from src.reports.models.category import Category
 
 
@@ -39,9 +40,27 @@ class Report(models.Model):
         default=Status.PENDING,
         verbose_name=_("Status")
     )
-    votes = models.IntegerField(
+    upvotes_count = models.IntegerField(
         default=0,
-        verbose_name=_("Votes")
+        verbose_name=_("Upvotes count")
+    )
+    downvotes_count = models.IntegerField(
+        default=0,
+        verbose_name=_("Downvotes count")
+    )
+    upvotes = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name="upvoted_reports",
+        through="reports.Upvote",
+        through_fields=("report", "voter"),
+        verbose_name=_("Upvotes")
+    )
+    downvotes = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name="downvoted_reports",
+        through="reports.Downvote",
+        through_fields=("report", "voter"),
+        verbose_name=_("Downvotes")
     )
     reporter = models.ForeignKey(
         settings.AUTH_USER_MODEL,
