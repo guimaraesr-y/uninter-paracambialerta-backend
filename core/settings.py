@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     # Local apps
     'src.reports',
     'src.users',
+    'src.location',
 ]
 
 MIDDLEWARE = [
