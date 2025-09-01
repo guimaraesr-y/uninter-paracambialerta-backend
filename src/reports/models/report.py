@@ -2,7 +2,6 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
-from src.reports.models.votes import Downvote, Upvote
 from src.reports.models.category import Category
 
 
