@@ -2,6 +2,9 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
+from src.reports.choices.status import ReportStatus
+from src.reports.choices.vote_type import ReportVoteType
+from src.reports.models.votes import ReportVote
 from src.reports.models.category import Category
 
 
@@ -9,12 +12,6 @@ class Report(models.Model):
     """
     Represents a citizen's report about an urban issue.
     """
-
-    class Status(models.TextChoices):
-        PENDING = "PENDING", _("Pending")
-        IN_PROGRESS = "IN_PROGRESS", _("In Progress")
-        RESOLVED = "RESOLVED", _("Resolved")
-        ARCHIVED = "ARCHIVED", _("Archived")
 
     title = models.CharField(
         max_length=255,
@@ -31,8 +28,8 @@ class Report(models.Model):
     )
     status = models.CharField(
         max_length=20,
-        choices=Status.choices,
-        default=Status.PENDING,
+        choices=ReportStatus.choices,
+        default=ReportStatus.PENDING,
         verbose_name=_("Status")
     )
     upvotes_count = models.IntegerField(
@@ -43,19 +40,12 @@ class Report(models.Model):
         default=0,
         verbose_name=_("Downvotes count")
     )
-    upvotes = models.ManyToManyField(
+    votes = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         related_name="upvoted_reports",
-        through="reports.Upvote",
+        through="reports.ReportVote",
         through_fields=("report", "voter"),
-        verbose_name=_("Upvotes")
-    )
-    downvotes = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,
-        related_name="downvoted_reports",
-        through="reports.Downvote",
-        through_fields=("report", "voter"),
-        verbose_name=_("Downvotes")
+        verbose_name=_("Votes")
     )
     reporter = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -86,3 +76,32 @@ class Report(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.get_status_display()})"
+
+    def create_vote(self, user, vote_type: ReportVoteType):
+        vote = ReportVote.objects.filter(
+            report=self,
+            voter=user,
+        ).first()
+
+        if not vote:
+            vote = ReportVote.objects.create(
+                report=self,
+                voter=user,
+                vote_type=vote_type,
+            )
+        else:
+            if vote_type == ReportVoteType.UP and vote.is_downvote:
+                vote.vote_type = ReportVoteType.UP
+                self.downvotes_count -= 1
+            elif vote_type == ReportVoteType.DOWN and vote.is_upvote:
+                vote.vote_type = ReportVoteType.DOWN
+                self.upvotes_count -= 1
+
+            vote.vote_type = vote_type
+            vote.save(update_fields=["vote_type"])
+
+        if vote_type == ReportVoteType.UP:
+            self.upvotes_count += 1
+        else:
+            self.downvotes_count += 1
+        self.save()
