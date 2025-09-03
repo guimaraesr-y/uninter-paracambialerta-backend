@@ -40,13 +40,6 @@ class Report(models.Model):
         default=0,
         verbose_name=_("Downvotes count")
     )
-    votes = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,
-        related_name="upvoted_reports",
-        through="reports.ReportVote",
-        through_fields=("report", "voter"),
-        verbose_name=_("Votes")
-    )
     reporter = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

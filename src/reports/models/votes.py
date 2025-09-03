@@ -8,7 +8,7 @@ class ReportVote(models.Model):
     """Represents a vote on a report."""
 
     report = models.ForeignKey(
-        "reports.Report", on_delete=models.CASCADE
+        "reports.Report", related_name="votes", on_delete=models.CASCADE
     )
     voter = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE
