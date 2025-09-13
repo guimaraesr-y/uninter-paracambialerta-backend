@@ -4,13 +4,13 @@ from typing import Tuple
 
 class CoordinateService(ABC):
 
-    def get_coordinates(self, address) -> Tuple[float, float]:
+    def get_coordinates(self, address: str) -> Tuple[float, float]:
         """
         Get the coordinates for the given address.
         """
         raise NotImplementedError
 
-    def get_address(self, latitude, longitude) -> str:
+    def get_address(self, latitude: float, longitude: float) -> str:
         """
         Get the address for the given coordinates.
         """

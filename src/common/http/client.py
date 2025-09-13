@@ -7,6 +7,8 @@ import requests
 class HttpClient(ABC):
     """Abstract base class for an HTTP client."""
 
+    DEFAULT_USER_AGENT = "ParacambiAlertaAPI/1.0"
+
     @abstractmethod
     def get(
         self,
@@ -53,6 +55,11 @@ class HttpClient(ABC):
 class RequestsHttpClient(HttpClient):
     """Concrete implementation of HttpClient using the requests library."""
 
+    def __init__(self, user_agent: Optional[str] = None):
+        self.session = requests.Session()
+        if user_agent:
+            self.session.headers["User-Agent"] = user_agent or self.DEFAULT_USER_AGENT
+
     def get(
         self,
         url: str,
@@ -60,7 +67,7 @@ class RequestsHttpClient(HttpClient):
         headers: Optional[Dict[str, Any]] = None,
     ) -> Any:
         try:
-            response = requests.get(url, params=params, headers=headers)
+            response = self.session.get(url, params=params, headers=headers)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
@@ -76,7 +83,7 @@ class RequestsHttpClient(HttpClient):
         headers: Optional[Dict[str, Any]] = None,
     ) -> Any:
         try:
-            response = requests.post(url, json=data, params=params, headers=headers)
+            response = self.session.post(url, json=data, params=params, headers=headers)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
@@ -90,7 +97,7 @@ class RequestsHttpClient(HttpClient):
         headers: Optional[Dict[str, Any]] = None,
     ) -> Any:
         try:
-            response = requests.put(url, json=data, params=params, headers=headers)
+            response = self.session.put(url, json=data, params=params, headers=headers)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
@@ -103,7 +110,7 @@ class RequestsHttpClient(HttpClient):
         headers: Optional[Dict[str, Any]] = None,
     ) -> Any:
         try:
-            response = requests.delete(url, params=params, headers=headers)
+            response = self.session.delete(url, params=params, headers=headers)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:

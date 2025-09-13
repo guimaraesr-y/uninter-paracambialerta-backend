@@ -1,6 +1,8 @@
 from django.db import models
 
-from src.location.services.coordinates.coordinate_service_factory import CoordinateServiceFactory
+from src.location.services.coordinates.coordinate_service_factory import (
+    CoordinateServiceFactory
+)
 
 
 class Location(models.Model):
@@ -19,7 +21,10 @@ class Location(models.Model):
         verbose_name_plural = "Locations"
 
     def __str__(self):
-        return f"{self.address}, {self.number} - {self.neighborhood}, {self.city}/{self.state}"
+        return (
+            f"{self.address}, {self.number} - "
+            f"{self.neighborhood}, {self.city}/{self.state}"
+        )
 
     def handle_geolocation(self):
         coordinate_service = CoordinateServiceFactory.create()
