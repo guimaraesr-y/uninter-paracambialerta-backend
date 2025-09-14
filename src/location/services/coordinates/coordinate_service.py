@@ -1,5 +1,20 @@
 from abc import ABC
-from typing import Tuple
+from dataclasses import dataclass
+from decimal import Decimal
+from typing import Optional, Tuple
+
+
+@dataclass
+class CoordinateAddressResponse:
+    number: int | None
+    address: str
+    neighborhood: str
+    city: str
+    state: str
+    country: str
+    full_address: str
+    latitude: float
+    longitude: float
 
 
 class CoordinateService(ABC):
@@ -10,7 +25,7 @@ class CoordinateService(ABC):
         """
         raise NotImplementedError
 
-    def get_address(self, latitude: float, longitude: float) -> str:
+    def get_address(self, latitude: Decimal, longitude: Decimal) -> Optional[CoordinateAddressResponse]:
         """
         Get the address for the given coordinates.
         """
