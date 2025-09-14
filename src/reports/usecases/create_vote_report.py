@@ -61,10 +61,12 @@ class CreateVoteReportUseCase:
                         vote=existing_vote
                     )
 
+                old_vote_type = ReportVoteType(existing_vote.vote_type)
                 vote = self._update_vote(existing_vote, self._vote_type)
+
                 up_delta, down_delta = self._deltas_for_change(
-                    ReportVoteType(existing_vote.vote_type),
-                    self._vote_type,
+                    old_vote_type=old_vote_type,
+                    new_vote_type=self._vote_type,
                 )
                 created, changed = False, True
 
@@ -81,7 +83,7 @@ class CreateVoteReportUseCase:
             )
 
     # -------------------------
-    # Métodos auxiliares
+    # Auxiliary methods
     # -------------------------
     def _lock_report(self, report_id: int) -> Report:
         return Report.objects.select_for_update().get(pk=report_id)
@@ -123,5 +125,5 @@ class CreateVoteReportUseCase:
         if old_vote_type == ReportVoteType.DOWN and new_vote_type == ReportVoteType.UP:
             return (1, -1)
 
-        # default case (no change should occur), no change
+        # default case (should not occur)
         return (0, 0)
