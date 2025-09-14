@@ -1,10 +1,11 @@
 from django.db import models
 from django.conf import settings
 
+from src.common.models import TimestampedModelMixin
 from src.reports.choices.vote_type import ReportVoteType
 
 
-class ReportVote(models.Model):
+class ReportVote(TimestampedModelMixin):
     """Represents a vote on a report."""
 
     report = models.ForeignKey(
@@ -14,7 +15,6 @@ class ReportVote(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE
     )
     vote_type = models.CharField(choices=ReportVoteType.choices, max_length=4)
-    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ("report", "voter")

@@ -1,14 +1,14 @@
 from django.db import models
+from django.db.models import F
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
+from src.common.models import TimestampedModelMixin
 from src.reports.choices.status import ReportStatus
-from src.reports.choices.vote_type import ReportVoteType
-from src.reports.models.votes import ReportVote
 from src.reports.models.category import Category
 
 
-class Report(models.Model):
+class Report(TimestampedModelMixin):
     """
     Represents a citizen's report about an urban issue.
     """
@@ -53,14 +53,6 @@ class Report(models.Model):
         related_name="reports",
         verbose_name=_("Category")
     )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name=_("Created At")
-    )
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        verbose_name=_("Updated At")
-    )
 
     class Meta:
         verbose_name = _("Report")
@@ -68,33 +60,18 @@ class Report(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.title} ({self.get_status_display()})"
+        return f"{self.title} ({self.status.upper()})"
 
-    def create_vote(self, user, vote_type: ReportVoteType):
-        vote = ReportVote.objects.filter(
-            report=self,
-            voter=user,
-        ).first()
+    def apply_vote_delta(self, up_delta: int = 0, down_delta: int = 0):
+        """
+        Updates the counters atomically in the database.
+        Uses F() to avoid concurrent read/write.
+        """
+        # Update via queryset to use F() (avoid loading instance if not necessary)
+        self.__class__.objects.filter(pk=self.pk).update(
+            upvotes_count=F('upvotes_count') + up_delta,
+            downvotes_count=F('downvotes_count') + down_delta,
+        )
 
-        if not vote:
-            vote = ReportVote.objects.create(
-                report=self,
-                voter=user,
-                vote_type=vote_type,
-            )
-        else:
-            if vote_type == ReportVoteType.UP and vote.is_downvote:
-                vote.vote_type = ReportVoteType.UP
-                self.downvotes_count -= 1
-            elif vote_type == ReportVoteType.DOWN and vote.is_upvote:
-                vote.vote_type = ReportVoteType.DOWN
-                self.upvotes_count -= 1
-
-            vote.vote_type = vote_type
-            vote.save(update_fields=["vote_type"])
-
-        if vote_type == ReportVoteType.UP:
-            self.upvotes_count += 1
-        else:
-            self.downvotes_count += 1
-        self.save()
+        # Also updates the instance in memory for whoever called it
+        self.refresh_from_db(fields=['upvotes_count', 'downvotes_count', 'updated_at'])
