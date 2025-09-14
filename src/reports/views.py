@@ -4,13 +4,13 @@ from .models import Category, Report
 from .serializers import CategorySerializer, ReportSerializer
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint that allows categories to be viewed or edited.
     """
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = []
 
 
 class ReportViewSet(viewsets.ModelViewSet):
