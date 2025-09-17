@@ -28,7 +28,7 @@ class Location(models.Model):
     def formatted_address(self) -> str:
         if not self.address or not self.number or not self.neighborhood or not self.city or not self.state:
             return ''
-        return f'{self.address}, {self.number} - {self.neighborhood}, {self.city}/{self.state}'
+        return f'{self.address}, {self.number} - {self.neighborhood}, {self.city}, {self.state}'
 
     def save(self, *args, **kwargs) -> None:
         self.handle_geolocation()
