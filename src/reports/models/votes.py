@@ -16,6 +16,10 @@ class ReportVote(TimestampedModelMixin):
     )
     vote_type = models.CharField(choices=ReportVoteType.choices, max_length=4)
 
+    voting = models.ForeignKey(
+        "voting.Voting", related_name="votes", on_delete=models.SET_NULL, null=True
+    )
+
     class Meta:
         unique_together = ("report", "voter")
 
