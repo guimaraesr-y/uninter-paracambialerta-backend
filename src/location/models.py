@@ -1,4 +1,5 @@
 from decimal import Decimal
+import os
 from django.db import models
 
 from src.location.services.coordinates.coordinate_service_factory import (
@@ -35,6 +36,9 @@ class Location(models.Model):
         return super().save(*args, **kwargs)
 
     def handle_geolocation(self):
+        if os.environ.get('ENVIRONMENT', 'development') != 'production':
+            return
+
         self._get_address_from_coordinates()
         self._get_coordinates_from_address()
 
