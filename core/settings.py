@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'src.users',
     'src.location',
     'src.common',
+    'src.voting',
 ]
 
 MIDDLEWARE = [
