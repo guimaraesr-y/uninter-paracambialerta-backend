@@ -12,9 +12,10 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import logging
 from pathlib import Path
-from dotenv import load_dotenv
 
-load_dotenv()
+from src.common.services import EnvironmentService
+
+EnvironmentService.load_env()
 logging.basicConfig(level=logging.INFO, format='[%(asctime)s - %(levelname)s] %(message)s')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
