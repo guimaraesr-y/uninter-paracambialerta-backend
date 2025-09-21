@@ -5,7 +5,9 @@ from django.utils.translation import gettext_lazy as _
 
 from src.common.models import TimestampedModelMixin
 from src.reports.choices.status import ReportStatus
+from src.reports.exceptions import NoCurrentVotingException
 from src.reports.models.category import Category
+from src.voting.usecases.get_current_voting import GetCurrentVotingUseCase
 
 
 class Report(TimestampedModelMixin):
@@ -53,6 +55,9 @@ class Report(TimestampedModelMixin):
         related_name="reports",
         verbose_name=_("Category")
     )
+    voting = models.ForeignKey(
+        "voting.Voting", related_name="votes", on_delete=models.SET_NULL, null=True, blank=True
+    )
 
     class Meta:
         verbose_name = _("Report")
@@ -61,6 +66,10 @@ class Report(TimestampedModelMixin):
 
     def __str__(self):
         return f"{self.title} ({self.status.upper()})"
+
+    def save(self, *args, **kwargs):
+        self._handle_current_voting()
+        return super().save(*args, **kwargs)
 
     def apply_vote_delta(self, up_delta: int = 0, down_delta: int = 0):
         """
@@ -75,3 +84,23 @@ class Report(TimestampedModelMixin):
 
         # Also updates the instance in memory for whoever called it
         self.refresh_from_db(fields=['upvotes_count', 'downvotes_count', 'updated_at'])
+
+    def _handle_current_voting(self) -> None:
+        if self.pk:
+            return
+
+        voting = GetCurrentVotingUseCase().execute()
+        if not voting:
+            raise NoCurrentVotingException()
+
+        self.voting = voting
+
+    @property
+    def can_be_voted(self) -> bool:
+        if self.status != ReportStatus.PENDING:
+            return False
+
+        if self.voting.active is not True:
+            return False
+
+        return True

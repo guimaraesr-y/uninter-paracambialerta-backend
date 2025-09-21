@@ -1,8 +1,10 @@
 from django.db import models
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 
 from src.common.models import TimestampedModelMixin
 from src.reports.choices.vote_type import ReportVoteType
+from src.reports.exceptions import ReportCannotBeVoted
 
 
 class ReportVote(TimestampedModelMixin):
@@ -16,15 +18,15 @@ class ReportVote(TimestampedModelMixin):
     )
     vote_type = models.CharField(choices=ReportVoteType.choices, max_length=4)
 
-    voting = models.ForeignKey(
-        "voting.Voting", related_name="votes", on_delete=models.SET_NULL, null=True
-    )
-
     class Meta:
         unique_together = ("report", "voter")
 
     def __str__(self):
         return f"{self.voter} voted {self.vote_type} on {self.report}"
+
+    def save(self, *args, **kwargs) -> None:
+        self._handle_can_be_voted()
+        return super().save(*args, **kwargs)
 
     @property
     def is_upvote(self):
@@ -33,3 +35,7 @@ class ReportVote(TimestampedModelMixin):
     @property
     def is_downvote(self):
         return self.vote_type == ReportVoteType.DOWN
+
+    def _handle_can_be_voted(self) -> None:
+        if not self.report.can_be_voted:
+            raise ReportCannotBeVoted()
