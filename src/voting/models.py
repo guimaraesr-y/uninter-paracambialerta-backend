@@ -8,6 +8,7 @@ from src.reports.models.votes import ReportVote
 class Voting(models.Model):
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
+    active = models.BooleanField(default=False, blank=True, null=True)
     total_to_be_selected = models.IntegerField(default=3)
 
     votes: "models.Manager[ReportVote]"
