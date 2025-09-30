@@ -14,6 +14,7 @@ class Report(TimestampedModelMixin):
     """
     Represents a citizen's report about an urban issue.
     """
+    id: 'int'
 
     title = models.CharField(
         max_length=255,
